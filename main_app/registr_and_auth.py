@@ -3,9 +3,12 @@ import jwt
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
-from models import User
-from db import users_db
-from dependencies import SECRET_KEY, ALGORITHM
+from fastapi import Depends, HTTPException, status
+from . import crud
+from sqlalchemy.orm import Session
+
+from main_app.database import get_db
+from main_app.dependencies import SECRET_KEY, ALGORITHM
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -23,14 +26,15 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_user(username: str):
-    if username in users_db:
-        return User(**users_db[username])
-    return None
+def get_user(username: str, db: Session = Depends(get_db)):
+    user = crud.get_user_by_username(db, username=username)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return user
 
 
-def authenticate_user(username: str, password: str):
-    user = get_user(username)
+def authenticate_user(username: str, password: str, db: Session):
+    user = get_user(username, db)
     if not user:
         return False
     if not verify_password(password, user.password):
