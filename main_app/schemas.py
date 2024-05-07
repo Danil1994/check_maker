@@ -1,20 +1,22 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Union
+from datetime import datetime
+from enum import Enum
 
 
 class UserBase(BaseModel):
     username: str
 
 
-class UserCreate(UserBase):
-    password: str
-
-
 class User(UserBase):
     id: int
 
     class Config:
-        from_attributes  = True
+        from_attributes = True
+
+
+class UserCreate(UserBase):
+    password: str
 
 
 class Token(BaseModel):
@@ -24,3 +26,21 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+
+
+##################################################################
+
+class SaleCheck(BaseModel):
+    id: int
+    user_id: int
+    created_at: datetime
+    products: List[Dict[str, Union[str, float, int]]]
+    payment: Dict[str, float]
+
+    class Config:
+        orm_mode = True
+
+
+class SaleCheckCreate(BaseModel):
+    products: List[Dict[str, Union[str, float, int]]]
+    payment: Dict[str, Union[str, float]]

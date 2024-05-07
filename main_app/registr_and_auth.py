@@ -1,24 +1,26 @@
-import jwt
+from jwt import PyJWTError, decode, encode
 
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
+
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
-from . import crud
+from . import crud, schemas
 from sqlalchemy.orm import Session
 
 from main_app.database import get_db
 from main_app.dependencies import SECRET_KEY, ALGORITHM
-
+from .schemas import User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 def create_access_token(data: dict, expires_delta: timedelta):
     to_encode = data.copy()
     expire = datetime.utcnow() + expires_delta
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
@@ -33,7 +35,7 @@ def get_user(username: str, db: Session = Depends(get_db)):
     return user
 
 
-def authenticate_user(username: str, password: str, db: Session):
+def authenticate_user(username: str, password: str, db: Session = Depends(get_db)):
     user = get_user(username, db)
     if not user:
         return False
@@ -42,4 +44,17 @@ def authenticate_user(username: str, password: str, db: Session):
     return user
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+def get_user_from_token(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> schemas.User:
+    try:
+        payload = decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
+
+        user = crud.get_user_by_username(db, username)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+        return user
+    except PyJWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")

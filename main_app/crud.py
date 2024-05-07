@@ -1,6 +1,9 @@
+from typing import Dict, List
+
 from sqlalchemy.orm import Session
 from . import models, schemas
 from passlib.context import CryptContext
+from .calculate import response_builder
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -21,13 +24,18 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.refresh(db_user)
     return db_user
 
-# def get_sales_checks(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-#     return db.query(models.SalesCheck).filter(models.SalesCheck.user_id == user_id).offset(skip).limit(limit).all()
-#
-#
-# def create_sales_check(db: Session, sales_check: schemas.SalesCheckCreate, user_id: int):
-#     db_sales_check = models.SalesCheck(user_id=user_id, **sales_check.dict())
-#     db.add(db_sales_check)
-#     db.commit()
-#     db.refresh(db_sales_check)
-#     return db_sales_check
+
+def create_sale_check(db: Session, user: schemas.User, products_list: List[Dict], payment: dict):
+    resp = response_builder(products_list=products_list, payment=payment)
+    sale_check = models.SaleCheck(
+        user_id=user.id,
+        products=resp["products"],
+        payment=resp["payment"],
+        total=resp["total"],
+        rest=resp["rest"],
+        created_at=resp["datetime"]
+    )
+    db.add(sale_check)
+    db.commit()
+    db.refresh(sale_check)
+    return sale_check
