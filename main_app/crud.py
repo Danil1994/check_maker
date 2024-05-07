@@ -1,5 +1,7 @@
-from typing import Dict, List
+from datetime import datetime
+from typing import Dict, List, Optional
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from . import models, schemas
 from passlib.context import CryptContext
@@ -39,3 +41,38 @@ def create_sale_check(db: Session, user: schemas.User, products_list: List[Dict]
     db.commit()
     db.refresh(sale_check)
     return sale_check
+
+
+def get_checks_by_user_id(db, user_id: int,
+                          created_before: Optional[str] = None,
+                          created_after: Optional[str] = None,
+                          max_sum: Optional[float] = None,
+                          min_sum: Optional[float] = None,
+                          type_payment: Optional[str] = None
+                          ):
+    query = db.query(models.SaleCheck).filter(models.SaleCheck.user_id == user_id)
+
+    if created_before:
+        query = query.filter(
+            func.datetime(models.SaleCheck.created_at) <=
+            datetime.strptime(created_before, '"%d.%m.%Y %H:%M"')
+        )
+
+    if created_after:
+        query = query.filter(
+            func.datetime(models.SaleCheck.created_at) >=
+            datetime.strptime(created_after, '"%d.%m.%Y %H:%M"')
+        )
+
+    if max_sum:
+        query = query.filter(models.SaleCheck.total <= max_sum)
+    if min_sum:
+        query = query.filter(models.SaleCheck.total >= min_sum)
+
+    if type_payment:
+        query = query.filter(models.SaleCheck.payment["type"] == type_payment)
+
+    dt = "07.05.2024 15:35"
+    for i in query:
+        print(str(i.payment["type"]), type_payment)
+    return query.all()

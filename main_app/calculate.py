@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from typing import Dict
+from main_app.excaptions import NegativePriceError, InsufficientFundsError
 
 response_template = {
     "products": [
@@ -9,20 +9,20 @@ response_template = {
         "type": "type_payment",
         "amount": "amount"
     },
-    "total": 0,
-    "rest": 0,
+    "total": 0.0,
+    "rest": 0.0,
     "created_at": "datetime"
 }
 
 
-def calculate_product_total_price(item: Dict) -> float:
+def calculate_product_total_price(item: dict) -> float:
     total_price = item["price"] * item["quantity"]
     if total_price < 0:
-        print(f"Invalid price{item['price']}, {item['quantity']}")
+        raise NegativePriceError(item['price'], item['quantity'])
     return total_price
 
 
-def calculate_total_price_for_product(dict_of_products: Dict) -> Dict:
+def calculate_total_price_for_product(dict_of_products: dict) -> dict:
     dict_with_total = {
         "name": dict_of_products["name"],
         "price": dict_of_products["price"],
@@ -35,28 +35,25 @@ def calculate_total_price_for_product(dict_of_products: Dict) -> Dict:
     return dict_with_total
 
 
-def calculate_total_price_for_check(products_list):
+def calculate_total_price_for_check(products_list: list) -> float:
     total_sum = 0
     for products in products_list:
         total_sum += products["total"]
-    if total_sum < 0:
-        return {"Not enough money ": f"missing {total_sum}!"}
     return total_sum
 
 
 def calculate_change(payment_amount: float, total_price: float) -> float:
     change = payment_amount - total_price
     if change < 0:
-        print(f"Not enoght money missing {change}!")
+        raise InsufficientFundsError(payment_amount, total_price)
     return change
 
 
-def response_builder(products_list: list[dict], payment: dict):
+def response_builder(products_list: list[dict], payment: dict) -> dict:
     response = response_template
-    response["payment"]["type"] = payment["type"]
-    response["payment"]["amount"] = payment["amount"]
-    for dict_el in products_list:
-        prod_with_total = calculate_total_price_for_product(dict_el)
+    response["payment"] = payment
+    for product in products_list:
+        prod_with_total = calculate_total_price_for_product(product)
         response["products"].append(prod_with_total)
     total_price = calculate_total_price_for_check(response["products"])
     response["total"] = total_price

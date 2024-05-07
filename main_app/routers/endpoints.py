@@ -1,7 +1,9 @@
+from typing import Optional
+
 from fastapi import HTTPException, Depends, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from main_app.crud import create_sale_check
 from main_app.database import get_db
@@ -39,13 +41,29 @@ async def read_users_me(current_user: schemas.User = Depends(get_user_from_token
     return current_user
 
 
-@router.post("/process_products/")
-async def process_products(request_body: schemas.SaleCheckCreate,
-                           db: Session = Depends(get_db),
-                           current_user: schemas.User = Depends(get_user_from_token),
-                           ):
+@router.post("/check/")
+async def check_create(request_body: schemas.SaleCheckCreate,
+                       db: Session = Depends(get_db),
+                       current_user: schemas.User = Depends(get_user_from_token),
+                       ):
     products = request_body.products
     payment = request_body.payment
 
     created_sale_check = create_sale_check(db=db, user=current_user, products_list=products, payment=payment)
     return created_sale_check
+
+
+@router.get("/check/")
+async def checks_get(db: Session = Depends(get_db),
+                     user: schemas.User = Depends(get_user_from_token),
+                     created_before: Optional[str] = None,
+                     created_after: Optional[str] = None,
+                     max_sum: Optional[float] = None,
+                     min_sum: Optional[float] = None,
+                     type_payment: Optional[str] = None
+                     ):
+    checks = crud.get_checks_by_user_id(db, user.id, created_before, created_after, max_sum, min_sum, type_payment)
+    if not checks:
+        raise HTTPException(status_code=404, detail="Checks not found")
+    return checks
+
