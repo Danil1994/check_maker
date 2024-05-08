@@ -48,7 +48,9 @@ def get_checks_by_user_id(db, user_id: int,
                           created_after: Optional[str] = None,
                           max_sum: Optional[float] = None,
                           min_sum: Optional[float] = None,
-                          type_payment: Optional[str] = None
+                          type_payment: Optional[str] = None,
+                          limit: Optional[int] = 10,
+                          offset: Optional[int] = 0
                           ):
     query = db.query(models.SaleCheck).filter(models.SaleCheck.user_id == user_id)
 
@@ -67,6 +69,7 @@ def get_checks_by_user_id(db, user_id: int,
         query = query.filter(
             func.json_extract(models.SaleCheck.payment, '$.type') == type_payment
         )
+    query = query.limit(limit).offset(offset)
 
     return query.all()
 

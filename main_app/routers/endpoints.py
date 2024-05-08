@@ -57,9 +57,14 @@ async def checks_get(db: Session = Depends(get_db),
                      created_after: Optional[str] = None,
                      max_sum: Optional[float] = None,
                      min_sum: Optional[float] = None,
-                     type_payment: Optional[str] = None
+                     type_payment: Optional[str] = None,
+                     limit: Optional[int] = 10,  # Количество записей на страницу
+                     page: Optional[int] = 1,  # Номер страницы
+                     offset: Optional[int] = 0  # Количество записей, которые нужно пропустить
                      ):
-    checks = crud.get_checks_by_user_id(db, user.id, created_before, created_after, max_sum, min_sum, type_payment)
+    skip = (page - 1) * limit
+    checks = crud.get_checks_by_user_id(db, user.id, created_before, created_after, max_sum, min_sum, type_payment,
+                                        limit, offset)
     if not checks:
         raise HTTPException(status_code=404, detail="Checks not found")
     return checks
