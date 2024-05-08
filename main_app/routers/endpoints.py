@@ -46,7 +46,6 @@ async def check_create(request: schemas.SaleCheckCreate,
                        db: Session = Depends(get_db),
                        user: schemas.User = Depends(get_user_from_token),
                        ):
-
     created_sale_check = create_sale_check(db=db, user=user, request=request)
     return created_sale_check
 
@@ -65,3 +64,12 @@ async def checks_get(db: Session = Depends(get_db),
         raise HTTPException(status_code=404, detail="Checks not found")
     return checks
 
+
+@router.get("/check/{check_id}", response_model=schemas.SaleCheck)
+def read_check(check_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_user_from_token)):
+    check = crud.get_check_by_id(db, check_id)
+    if check is None:
+        raise HTTPException(status_code=404, detail="Check not found")
+    if check.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You don't have permission to access this check")
+    return check

@@ -53,16 +53,10 @@ def get_checks_by_user_id(db, user_id: int,
     query = db.query(models.SaleCheck).filter(models.SaleCheck.user_id == user_id)
 
     if created_before:
-        query = query.filter(
-            func.datetime(models.SaleCheck.created_at) <=
-            datetime.strptime(created_before, '"%d.%m.%Y %H:%M"')
-        )
+        query = query.filter(models.SaleCheck.created_at <= created_before)
 
     if created_after:
-        query = query.filter(
-            func.datetime(models.SaleCheck.created_at) >=
-            datetime.strptime(created_after, '"%d.%m.%Y %H:%M"')
-        )
+        query = query.filter(models.SaleCheck.created_at >= created_after)
 
     if max_sum:
         query = query.filter(models.SaleCheck.total <= max_sum)
@@ -70,9 +64,12 @@ def get_checks_by_user_id(db, user_id: int,
         query = query.filter(models.SaleCheck.total >= min_sum)
 
     if type_payment:
-        query = query.filter(models.SaleCheck.payment["type"] == type_payment)
+        query = query.filter(
+            func.json_extract(models.SaleCheck.payment, '$.type') == type_payment
+        )
 
-    dt = "07.05.2024 15:35"
-    for i in query:
-        print(str(i.payment["type"]), type_payment)
     return query.all()
+
+
+def get_check_by_id(db: Session, check_id: int):
+    return db.query(models.SaleCheck).filter(models.SaleCheck.id == check_id).first()

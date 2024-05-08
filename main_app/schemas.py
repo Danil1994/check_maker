@@ -35,7 +35,7 @@ class SaleCheck(BaseModel):
     id: int
     user_id: int
     products: List[Dict[str, Union[str, float, int]]]
-    payment: Dict[str, float]
+    payment: Dict[str, Union[str, float]]
     total: float
     rest: float
     created_at: str
@@ -47,9 +47,6 @@ class SaleCheck(BaseModel):
 class SaleCheckCreate(BaseModel):
     products: List[Dict[str, Union[str, float, int]]]
     payment: Dict[str, Union[str, float]]
-    # total: float
-    # rest: float
-    # created_at: str
 
     products: List[Dict[str, Union[str, float, int]]] = Field(example=[
         {"name": "product1", "price": 10.0, "quantity": 2},
