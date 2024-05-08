@@ -36,7 +36,9 @@ class SaleCheck(BaseModel):
     user_id: int
     products: List[Dict[str, Union[str, float, int]]]
     payment: Dict[str, float]
-    created_at: Annotated[datetime, Body()]
+    total: float
+    rest: float
+    created_at: str
 
     class Config:
         orm_mode = True
@@ -45,6 +47,9 @@ class SaleCheck(BaseModel):
 class SaleCheckCreate(BaseModel):
     products: List[Dict[str, Union[str, float, int]]]
     payment: Dict[str, Union[str, float]]
+    # total: float
+    # rest: float
+    # created_at: str
 
     products: List[Dict[str, Union[str, float, int]]] = Field(example=[
         {"name": "product1", "price": 10.0, "quantity": 2},

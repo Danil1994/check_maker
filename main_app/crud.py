@@ -27,8 +27,8 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-def create_sale_check(db: Session, user: schemas.User, products_list: List[Dict], payment: dict):
-    resp = response_builder(products_list=products_list, payment=payment)
+def create_sale_check(db: Session, user: schemas.User, request: schemas.SaleCheckCreate):
+    resp = response_builder(request=request)
     sale_check = models.SaleCheck(
         user_id=user.id,
         products=resp["products"],

@@ -42,14 +42,12 @@ async def read_users_me(current_user: schemas.User = Depends(get_user_from_token
 
 
 @router.post("/check/")
-async def check_create(request_body: schemas.SaleCheckCreate,
+async def check_create(request: schemas.SaleCheckCreate,
                        db: Session = Depends(get_db),
-                       current_user: schemas.User = Depends(get_user_from_token),
+                       user: schemas.User = Depends(get_user_from_token),
                        ):
-    products = request_body.products
-    payment = request_body.payment
 
-    created_sale_check = create_sale_check(db=db, user=current_user, products_list=products, payment=payment)
+    created_sale_check = create_sale_check(db=db, user=user, request=request)
     return created_sale_check
 
 
