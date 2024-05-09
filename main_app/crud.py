@@ -1,9 +1,10 @@
 from typing import Optional
 
+from passlib.context import CryptContext
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+
 from . import models, schemas
-from passlib.context import CryptContext
 from .calculate import response_builder
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

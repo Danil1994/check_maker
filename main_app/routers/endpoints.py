@@ -1,17 +1,17 @@
+from datetime import timedelta
 from typing import Optional
 
-from fastapi import HTTPException, Depends, status, APIRouter
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import PlainTextResponse
-
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from datetime import timedelta
 
+from main_app import crud, schemas
 from main_app.crud import create_sale_check, generate_check_text
 from main_app.database import get_db
-from main_app.registr_and_auth import get_user_from_token, authenticate_user, create_access_token
 from main_app.dependencies import ACCESS_TOKEN_EXPIRE_MINUTES
-from main_app import crud, schemas
+from main_app.registr_and_auth import (authenticate_user, create_access_token,
+                                       get_user_from_token)
 
 router = APIRouter()
 
@@ -36,11 +36,6 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
 
     return schemas.Token(access_token=access_token, token_type="bearer")
-
-
-@router.get("/users/me", response_model=schemas.User)
-async def read_users_me(current_user: schemas.User = Depends(get_user_from_token)):
-    return current_user
 
 
 @router.post("/check/")

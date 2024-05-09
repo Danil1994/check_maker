@@ -1,16 +1,15 @@
-from jwt import PyJWTError, decode, encode
-
-from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
 
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
-from . import crud, schemas
+from fastapi.security import OAuth2PasswordBearer
+from jwt import PyJWTError, decode, encode
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from main_app.database import get_db
-from main_app.dependencies import SECRET_KEY, ALGORITHM
-from .schemas import User
+from main_app.dependencies import ALGORITHM, SECRET_KEY
+
+from . import crud, schemas
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

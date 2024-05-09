@@ -1,7 +1,8 @@
 from datetime import datetime
 
 from main_app import schemas
-from main_app.excaptions import InvalidPaymentTypeError, NegativePriceError, InsufficientFundsError
+from main_app.excaptions import (InsufficientFundsError,
+                                 InvalidPaymentTypeError, NegativePriceError)
 
 
 def calculate_product_total_price(item: dict) -> float:

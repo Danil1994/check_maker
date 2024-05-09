@@ -1,10 +1,5 @@
-from enum import Enum
-from typing import Dict, List, Union
-
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, JSON, String, Float, DateTime
+from sqlalchemy import JSON, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-
-from sqlalchemy.sql import func
 
 from .database import Base
 

@@ -1,8 +1,6 @@
-from fastapi import Body
+from typing import Dict, List, Optional, Union
+
 from pydantic import BaseModel, Field
-from typing import Annotated, Optional, List, Dict, Union
-from datetime import datetime
-from enum import Enum
 
 
 class UserBase(BaseModel):
@@ -41,7 +39,7 @@ class SaleCheck(BaseModel):
     created_at: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class SaleCheckCreate(BaseModel):
