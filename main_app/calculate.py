@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from main_app import schemas
-from main_app.excaptions import NegativePriceError, InsufficientFundsError
+from main_app.excaptions import InvalidPaymentTypeError, NegativePriceError, InsufficientFundsError
 
 
 def calculate_product_total_price(item: dict) -> float:
@@ -27,6 +27,9 @@ def calculate_change(payment_amount: float, total_price: float) -> float:
 
 def response_builder(request: schemas.SaleCheckCreate) -> dict:
     response = {"payment": request.payment, "products": request.products}
+    if response["payment"]["type"].lower() not in ["cash", "cashless"]:
+        raise InvalidPaymentTypeError(response["payment"]["type"])
+
     for product in response["products"]:
         product["total"] = calculate_product_total_price(product)
     total_price = calculate_total_price_for_check(response["products"])

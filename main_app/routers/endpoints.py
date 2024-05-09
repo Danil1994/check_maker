@@ -3,12 +3,12 @@ from typing import Optional
 from fastapi import HTTPException, Depends, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 from main_app.crud import create_sale_check
 from main_app.database import get_db
-from main_app.registr_and_auth import get_user_from_token, oauth2_scheme, authenticate_user, create_access_token
-from main_app.dependencies import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from main_app.registr_and_auth import get_user_from_token, authenticate_user, create_access_token
+from main_app.dependencies import ACCESS_TOKEN_EXPIRE_MINUTES
 from main_app import crud, schemas
 
 router = APIRouter()
@@ -58,13 +58,12 @@ async def checks_get(db: Session = Depends(get_db),
                      max_sum: Optional[float] = None,
                      min_sum: Optional[float] = None,
                      type_payment: Optional[str] = None,
-                     limit: Optional[int] = 10,  # Количество записей на страницу
-                     page: Optional[int] = 1,  # Номер страницы
-                     offset: Optional[int] = 0  # Количество записей, которые нужно пропустить
+                     limit: Optional[int] = 10,
+                     page: Optional[int] = 1,
+                     offset: Optional[int] = 0
                      ):
-    skip = (page - 1) * limit
     checks = crud.get_checks_by_user_id(db, user.id, created_before, created_after, max_sum, min_sum, type_payment,
-                                        limit, offset)
+                                        limit, page, offset)
     if not checks:
         raise HTTPException(status_code=404, detail="Checks not found")
     return checks

@@ -1,5 +1,4 @@
-from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Optional
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -50,7 +49,8 @@ def get_checks_by_user_id(db, user_id: int,
                           min_sum: Optional[float] = None,
                           type_payment: Optional[str] = None,
                           limit: Optional[int] = 10,
-                          offset: Optional[int] = 0
+                          page: Optional[int] = 1,
+                          offset: Optional[int] = 0,
                           ):
     query = db.query(models.SaleCheck).filter(models.SaleCheck.user_id == user_id)
 
@@ -69,7 +69,10 @@ def get_checks_by_user_id(db, user_id: int,
         query = query.filter(
             func.json_extract(models.SaleCheck.payment, '$.type') == type_payment
         )
-    query = query.limit(limit).offset(offset)
+    skip = (page - 1) * limit + offset
+
+    query = query.limit(limit).offset(skip)
+    query = query.offset(offset)
 
     return query.all()
 
