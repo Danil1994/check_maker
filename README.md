@@ -11,7 +11,7 @@ REST API for creating and viewing checks with user registration and authorizatio
    --Clone with SSH `git clone https://github.com/Danil1994/check_maker.git`
    --Clone with HTTPS `git clone git@github.com:Danil1994/check_maker.git`
 
-2. Go to your project folder: `path/to/the/folder`.
+2. Go to your project folder: `path/to/the/folder`. Create virtual env.
 3. Load your .env file like .env.example. And provide all the required information (passwords, secret keys etc).
 4. Install requirements.txt: `pip install -r requirements.txt`.
 5. Configure your connection parameters database.py -> SQLALCHEMY_DATABASE_URL=...
