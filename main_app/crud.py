@@ -77,5 +77,39 @@ def get_checks_by_user_id(db, user_id: int,
     return query.all()
 
 
-def get_check_by_id(db: Session, check_id: int):
+def get_check_by_id(db: Session, check_id: int) -> schemas.SaleCheck:
     return db.query(models.SaleCheck).filter(models.SaleCheck.id == check_id).first()
+
+
+def generate_check_text(db: Session, check: schemas.SaleCheck, string_len: int = 32) -> str:
+    def format_string(text: str, total: float, length: int = string_len) -> str:
+        total_length = len(f'{total:.2f}')
+        formatted_text = f"{text:<{length - total_length}}{total:>{total_length}.2f}\n"
+
+        return formatted_text
+
+    user = get_user(db, check.user_id)
+    payment_type = 'Готівка'
+    if check.payment["type"] == "cashless":
+        payment_type = 'Картка'
+    check_text = f"{'=' * string_len}\n"
+    check_text += f"{user.username:^{string_len}}\n"
+    check_text += f"{'=' * string_len}\n"
+
+    for product in check.products:
+        name = product['name']
+        quantity = str(product['quantity']) + ' x '
+        price = product['price']
+        check_text += format_string(quantity, price)
+        check_text += format_string(name, product['total'])
+        check_text += '-' * string_len + '\n'
+
+    check_text += format_string('СУМА', check.total)
+    check_text += format_string(payment_type, check.payment['amount'])
+    check_text += format_string('Решта', check.rest)
+    check_text += f"{'=' * string_len}\n"
+    check_text += f"{check.created_at.center(string_len)}\n"
+
+    check_text += f"{'Дякуємо за покупку!':^{string_len}}\n"
+
+    return check_text

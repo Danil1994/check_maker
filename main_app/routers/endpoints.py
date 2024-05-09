@@ -2,10 +2,12 @@ from typing import Optional
 
 from fastapi import HTTPException, Depends, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import PlainTextResponse
+
 from sqlalchemy.orm import Session
 from datetime import timedelta
 
-from main_app.crud import create_sale_check
+from main_app.crud import create_sale_check, generate_check_text
 from main_app.database import get_db
 from main_app.registr_and_auth import get_user_from_token, authenticate_user, create_access_token
 from main_app.dependencies import ACCESS_TOKEN_EXPIRE_MINUTES
@@ -77,3 +79,12 @@ def read_check(check_id: int, db: Session = Depends(get_db), current_user: schem
     if check.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="You don't have permission to access this check")
     return check
+
+
+@router.get("/text_check/{check_id}/", response_class=PlainTextResponse)
+async def get_check_by_id(check_id: int, string_len: int = 32, db: Session = Depends(get_db)):
+    check = crud.get_check_by_id(db, check_id)
+
+    check_text = generate_check_text(db, check, string_len)
+
+    return check_text
